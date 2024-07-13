@@ -1,0 +1,9 @@
+[package]
+name = "exact_filter"
+version = "0.1.0"
+authors = ["Tobias de Bruijn <t.debruijn@array21.dev>"]
+edition = "2021"
+
+[dev-dependencies]
+strum = "0.24.1"
+strum_macros = "0.24.3"

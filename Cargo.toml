@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+    "exact_filter",
+    "exact_request",
+    "knaaktomatisering",
+    "pretix_request"
+]
