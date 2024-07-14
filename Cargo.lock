@@ -975,6 +975,7 @@ dependencies = [
  "color-eyre",
  "exact_filter",
  "exact_request",
+ "http 1.1.0",
  "noiseless-tracing-actix-web",
  "pretix_request",
  "rustls",

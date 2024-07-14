@@ -3,8 +3,11 @@ use clap::Parser;
 use tracing::info;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, registry};
+use tracing_subscriber::fmt::layer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use exact_request::ExactClient;
+use exact_request::me::accounting_division;
 use crate::args::Args;
 use crate::config::{Config, Credentials, OAuthTokenPair};
 
@@ -12,7 +15,7 @@ mod config;
 mod args;
 mod web_server;
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread")]
 async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
@@ -23,10 +26,27 @@ async fn main() -> color_eyre::Result<()> {
     info!("{} v{} by {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"));
     info!("De centjesautomaat van Sticky");
 
-    let have_exact = config.credentials
-        .as_ref()
-        .map(|v| v.exact.is_some())
-        .unwrap_or(false);
+    // Install Ring's crypto provider
+    // Unwrap is safe as this is the first and only point in the application we
+    // call this function
+    rustls::crypto::ring::default_provider().install_default().unwrap();
+
+    let have_exact = if let Some(credentials) = &config.credentials {
+        if let Some(exact) = &credentials.exact {
+            let client = ExactClient::new(&exact.access_token);
+            match accounting_division(&client).await {
+                Ok(_) => true,
+                Err(e) => match e.status() {
+                    Some(http::StatusCode::UNAUTHORIZED) => {
+                        info!("Exact Online credentials present, but no longer valid");
+                        false
+                    },
+                    _ => return Err(e.into())
+                }
+            }
+        } else { false }
+    } else { false };
+
     let have_pretix = config.credentials
         .as_ref()
         .map(|v| v.pretix.is_some())
@@ -77,8 +97,8 @@ async fn main() -> color_eyre::Result<()> {
     if !have_pretix {
         info!("No Pretix token pair available. Need to authorize.");
         let login_url = pretix_request::oauth::login_url(
-            &config.exact.oauth.client_id,
-            &config.exact.oauth.redirect_uri,
+            &config.pretix.oauth.client_id,
+            &config.pretix.oauth.redirect_uri,
             &config.pretix.url,
         );
 
@@ -86,15 +106,18 @@ async fn main() -> color_eyre::Result<()> {
 
         // Wait for the login callback
         let callback_result = web_server::LoginServer::wait_for_callback(&config.web_server).await?;
+        info!("Received callback");
 
         // Exchange the callbackr result for a token pair
         let token_pair = pretix_request::oauth::exchange_code(
             callback_result.code,
-            &config.exact.oauth.client_id,
-            &config.exact.oauth.client_secret,
-            &config.exact.oauth.redirect_uri,
+            &config.pretix.oauth.client_id,
+            &config.pretix.oauth.client_secret,
+            &config.pretix.oauth.redirect_uri,
             &config.pretix.url
         ).await?;
+
+        info!("Login with Pretix successful");
 
         // Update the configuration
         if let Some(credentials) = &mut config.credentials {
@@ -113,10 +136,9 @@ async fn main() -> color_eyre::Result<()> {
         }
     }
 
+    info!("All required logins are present");
+
     config.write(&args.config).await?;
-
-    // TODO write tokens to configuration
-
 
     Ok(())
 }
@@ -125,6 +147,7 @@ async fn main() -> color_eyre::Result<()> {
 fn install_tracing<S: AsRef<str>>(directive: S) -> color_eyre::Result<()> {
     registry()
         .with(EnvFilter::from_str(directive.as_ref())?)
+        .with(layer())
         .with(ErrorLayer::default())
         .try_init()?;
     Ok(())
