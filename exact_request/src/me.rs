@@ -1,5 +1,5 @@
+use crate::{url, ExactClient, ExactPayload};
 use serde::Deserialize;
-use crate::{ExactClient, ExactPayload, url};
 
 pub async fn accounting_division(client: &ExactClient) -> Result<i32, reqwest::Error> {
     #[derive(Deserialize)]
@@ -8,7 +8,8 @@ pub async fn accounting_division(client: &ExactClient) -> Result<i32, reqwest::E
         accounting_division: i32,
     }
 
-    let r: ExactPayload<Response> = client.get(url("/api/v1/current/Me?$select=AccountingDivision"))
+    let r: ExactPayload<Response> = client
+        .get(url("/api/v1/current/Me?$select=AccountingDivision"))
         .send()
         .await?
         .error_for_status()?

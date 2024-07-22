@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-pub fn login_url<S1, S2, S3>(
-    client_id: S1,
-    redirect_uri: S2,
-    pretix_uri: S3,
-) -> String where
+pub fn login_url<S1, S2, S3>(client_id: S1, redirect_uri: S2, pretix_uri: S3) -> String
+where
     S1: AsRef<str>,
     S2: AsRef<str>,
     S3: AsRef<str>,
@@ -29,7 +26,8 @@ pub async fn exchange_code<S1, S2, S3, S4>(
     client_secret: S2,
     redirect_uri: S3,
     pretix_uri: S4,
-) -> Result<OAuthTokenPair, reqwest::Error> where
+) -> Result<OAuthTokenPair, reqwest::Error>
+where
     S1: AsRef<str>,
     S2: AsRef<str>,
     S3: AsRef<str>,
@@ -44,10 +42,7 @@ pub async fn exchange_code<S1, S2, S3, S4>(
 
     Ok(reqwest::Client::new()
         .post(&format!("{}/api/v1/oauth/token", pretix_uri.as_ref()))
-        .basic_auth(
-            client_id.as_ref(),
-            Some(client_secret.as_ref())
-        )
+        .basic_auth(client_id.as_ref(), Some(client_secret.as_ref()))
         .form(&RequestForm {
             code: &code,
             grant_type: "authorization_code",
@@ -57,6 +52,5 @@ pub async fn exchange_code<S1, S2, S3, S4>(
         .await?
         .error_for_status()?
         .json()
-        .await?
-    )
+        .await?)
 }

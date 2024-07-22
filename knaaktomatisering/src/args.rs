@@ -1,14 +1,15 @@
-use std::path::PathBuf;
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub struct Args {
     /// Path to the JSON configuration file
     #[clap(long, short)]
     pub config: PathBuf,
-
     #[clap(subcommand)]
     pub mode: Mode,
+    #[clap(long)]
+    pub only_auth: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -29,5 +30,9 @@ pub enum Mode {
         /// for pretix it is up to the most recent sunday (Pretix is exclusive).
         #[clap(long, short, default_value_t = 1)]
         periods_ago: i32,
+        /// The offset in hours with respect to UTC time.
+        /// For NL this is +1 in the winter, +2 in the summer.
+        #[clap(long, short)]
+        utc_offset_hours: i32,
     },
 }

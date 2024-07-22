@@ -91,14 +91,17 @@ impl FilterFunction {
 }
 
 impl Filter {
-    pub fn function<V: FilterValue, T: ToString + Debug>(mut self, key: T, f: FilterFunction, op: FilterOp, value: V) -> Self {
-        self.0.push_str(
-            &format!("+{}", Self::format_filter_string(
-                f.apply(key),
-                value,
-                op,
-            ))
-        );
+    pub fn function<V: FilterValue, T: ToString + Debug>(
+        mut self,
+        key: T,
+        f: FilterFunction,
+        op: FilterOp,
+        value: V,
+    ) -> Self {
+        self.0.push_str(&format!(
+            "+{}",
+            Self::format_filter_string(f.apply(key), value, op,)
+        ));
 
         self
     }
@@ -109,20 +112,39 @@ impl Filter {
     }
 
     #[inline]
-    pub fn and<T: ToString + Debug>(mut self, key: T, value: impl FilterValue, op: FilterOp) -> Self {
+    pub fn and<T: ToString + Debug>(
+        mut self,
+        key: T,
+        value: impl FilterValue,
+        op: FilterOp,
+    ) -> Self {
         self.push_operation("and", key, value, op);
         self
     }
 
     #[inline]
-    pub fn or<T: ToString + Debug>(mut self, key: T, value: impl FilterValue, op: FilterOp) -> Self {
+    pub fn or<T: ToString + Debug>(
+        mut self,
+        key: T,
+        value: impl FilterValue,
+        op: FilterOp,
+    ) -> Self {
         self.push_operation("or", key, value, op);
         self
     }
 
     #[inline]
-    fn push_operation<T: ToString + Debug>(&mut self, name: &str, key: T, value: impl FilterValue, op: FilterOp) {
-        self.0.push_str(&format!("+{name}+{}", Self::format_filter_string(key, value, op)));
+    fn push_operation<T: ToString + Debug>(
+        &mut self,
+        name: &str,
+        key: T,
+        value: impl FilterValue,
+        op: FilterOp,
+    ) {
+        self.0.push_str(&format!(
+            "+{name}+{}",
+            Self::format_filter_string(key, value, op)
+        ));
     }
 
     #[inline]
@@ -143,8 +165,17 @@ impl Filter {
     }
 
     #[inline]
-    fn format_filter_string<T: ToString + Debug>(key: T, value: impl FilterValue, op: FilterOp) -> String {
-        format!("{}+{}+{}", key.to_string(), op.serialize(), value.serialize())
+    fn format_filter_string<T: ToString + Debug>(
+        key: T,
+        value: impl FilterValue,
+        op: FilterOp,
+    ) -> String {
+        format!(
+            "{}+{}+{}",
+            key.to_string(),
+            op.serialize(),
+            value.serialize()
+        )
     }
 
     #[inline]
@@ -160,34 +191,31 @@ impl Filter {
 
 #[cfg(test)]
 mod test {
-    use strum_macros::Display;
-    use crate::Guid;
     use super::{Filter, FilterOp};
+    use crate::Guid;
+    use strum_macros::Display;
 
     #[derive(Display, Debug)]
     pub enum TestKeys {
         Foo,
-        Bar
+        Bar,
     }
 
     #[test]
     fn guid() {
-        let s = Filter::new(TestKeys::Foo, Guid::new("Foo"), FilterOp::Equals)
-            .finalize();
+        let s = Filter::new(TestKeys::Foo, Guid::new("Foo"), FilterOp::Equals).finalize();
         assert_eq!(s, "Foo+eq+guid'Foo'");
     }
 
     #[test]
     fn eq() {
-        let s = Filter::new(TestKeys::Bar, "bar", FilterOp::Equals)
-            .finalize();
+        let s = Filter::new(TestKeys::Bar, "bar", FilterOp::Equals).finalize();
         assert_eq!(s, "Bar+eq+'bar'");
     }
 
     #[test]
     fn ne() {
-        let s = Filter::new(TestKeys::Bar, "bar", FilterOp::NotEqual)
-            .finalize();
+        let s = Filter::new(TestKeys::Bar, "bar", FilterOp::NotEqual).finalize();
         assert_eq!(s, "Bar+ne+'bar'");
     }
 
