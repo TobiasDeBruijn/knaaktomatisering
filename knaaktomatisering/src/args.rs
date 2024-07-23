@@ -8,8 +8,16 @@ pub struct Args {
     pub config: PathBuf,
     #[clap(subcommand)]
     pub mode: Mode,
+    /// Only perform OAuth2 authorizations.
+    /// Useful if you need to run the program as root for the authorizations,
+    /// due to the bind to port 443, but want to run
+    /// the rest of the program as a regular user.
     #[clap(long)]
     pub only_auth: bool,
+    /// Only print actions that would be performed,
+    /// but don't actually perform them.
+    #[clap(long)]
+    pub dry_run: bool,
 }
 
 #[derive(Debug, Subcommand)]
@@ -28,10 +36,18 @@ pub enum Mode {
         /// A value of 1 indicates the most recent finished period.
         /// This would mean, from two sundays ago to the most recent monday (Koala is inclusive),
         /// for pretix it is up to the most recent sunday (Pretix is exclusive).
+        ///
+        /// A value of `0` is not allowed
         #[clap(long, short, default_value_t = 1)]
-        periods_ago: i32,
+        periods_ago: u32,
         /// The offset in hours with respect to UTC time.
         /// For NL this is +1 in the winter, +2 in the summer.
+        ///
+        /// Alternatively, you can use the `date` utility to find this export automatically.
+        /// Substitute the value you'd pass to this argument with
+        /// ```
+        /// $(date +"%z" | cut -c 2-)
+        /// ```
         #[clap(long, short)]
         utc_offset_hours: i32,
     },

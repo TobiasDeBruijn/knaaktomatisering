@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::fmt::{Debug, Display};
 
 #[derive(Debug)]
@@ -12,6 +13,7 @@ pub enum FilterOp {
     LessThanEquals,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct Guid(String);
 
 impl Guid {
@@ -26,15 +28,15 @@ impl Guid {
     }
 }
 
-impl ToString for Guid {
-    fn to_string(&self) -> String {
-        self.serialize()
+impl Display for Guid {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.serialize())
     }
 }
 
 pub trait FilterValue: ToString {
     fn serialize(&self) -> String {
-        format!("'{}'", self.to_string())
+        format!("{}", self.to_string())
     }
 }
 

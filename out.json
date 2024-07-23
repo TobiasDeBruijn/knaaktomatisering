@@ -1,0 +1,14 @@
+HTTP/2 401 
+content-type: application/json
+content-length: 0
+www-authenticate: Bearer error="invalid_token", error_description="The access token expired"
+cache-control: no-cache, no-store
+pragma: no-cache
+expires: -1
+reason: AuthenticationRequired
+x-xss-protection: 1; mode=block
+x-content-type-options: nosniff
+referrer-policy: strict-origin-when-cross-origin
+date: Tue, 23 Jul 2024 10:42:25 GMT
+strict-transport-security: max-age=31536000 ; includeSubDomains ; preload
+

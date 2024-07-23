@@ -41,6 +41,7 @@ pub struct Pretix {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Exact {
     pub oauth: OAuth2Config,
+    pub ledger_unassigned_payments: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

@@ -607,6 +607,7 @@ dependencies = [
 name = "exact_filter"
 version = "0.1.0"
 dependencies = [
+ "serde",
  "strum",
  "strum_macros",
 ]
@@ -615,8 +616,11 @@ dependencies = [
 name = "exact_request"
 version = "0.1.0"
 dependencies = [
+ "exact_filter",
+ "log",
  "reqwest",
  "serde",
+ "thiserror",
 ]
 
 [[package]]

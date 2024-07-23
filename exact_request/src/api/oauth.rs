@@ -1,3 +1,4 @@
+use crate::ExactClient;
 use serde::{Deserialize, Serialize};
 
 pub fn login_url<S1, S2>(client_id: S1, redirect_uri: S2) -> String
@@ -5,11 +6,11 @@ where
     S1: AsRef<str>,
     S2: AsRef<str>,
 {
-    format!(
-        "https://start.exactonline.nl/api/oauth2/auth?client_id={}&redirect_uri={}&response_type=code&force_login=0",
+    ExactClient::url(format!(
+        "/api/oauth2/auth?client_id={}&redirect_uri={}&response_type=code&force_login=0",
         client_id.as_ref(),
         redirect_uri.as_ref()
-    )
+    ))
 }
 
 #[derive(Deserialize)]
@@ -39,7 +40,7 @@ where
     }
 
     Ok(reqwest::Client::new()
-        .post("https://start.exactonline.nl/api/oauth2/token")
+        .post(ExactClient::url("/api/oauth2/token"))
         .form(&RequestForm {
             code: &code,
             grant_type: "authorization_code",

@@ -2,7 +2,9 @@ use crate::args::{Args, Mode};
 use crate::config::{Config, Credentials, OAuthTokenPair};
 use clap::Parser;
 use color_eyre::eyre::Error;
-use exact_request::me::accounting_division;
+use exact_request::api::gl_account::get_gl_account_by_code;
+use exact_request::api::me::accounting_division;
+use exact_request::api::sales_entry::{get_sales_entry_for_entry_number, get_sales_entry_lines};
 use exact_request::ExactClient;
 use futures_util::future::try_join_all;
 use pretix_request::data_exporter::{DataExporter, OrderDataExportOrderItem};
@@ -61,12 +63,43 @@ async fn main() -> color_eyre::Result<()> {
             .access_token,
         config.pretix.url,
     );
+
+    let mut exact_client = ExactClient::new(
+        &config
+            .credentials
+            .as_ref()
+            .unwrap()
+            .exact
+            .as_ref()
+            .unwrap()
+            .access_token,
+    );
+
+    info!("Querying ledger information from Exact");
+    exact_client.set_division(accounting_division(&exact_client).await?);
+    let unassigned_payments_gl =
+        get_gl_account_by_code(&exact_client, &config.exact.ledger_unassigned_payments).await?;
+
     match args.mode {
         Mode::WeekelijksePlezier {
             periods_ago,
-            transaction_id: _transaction_id,
+            transaction_id,
             utc_offset_hours,
         } => {
+            if periods_ago == 0 {
+                return Err(Error::msg("Argument '--periods-ago' may not be 0. 0 would mean you're looking from the most recent monday up until the next sunday, which isn't possible, as that sunday either hasn't happened yet, or it is still sunday."));
+            }
+
+            // Fetch the sales entry to which we should import the pretix data.
+            // While we don't need the data until we're going to be importing the
+            // pretix data, if this fails there's no point in running the pretix
+            // exports, which are expensive.
+            info!("Fetching sales entry information from Exact");
+            let sales_entry =
+                get_sales_entry_for_entry_number(&exact_client, transaction_id).await?;
+            let sales_entry_lines = get_sales_entry_lines(&exact_client, &sales_entry).await?;
+            info!("{sales_entry_lines:?}");
+
             let offset = UtcOffset::from_whole_seconds(utc_offset_hours * 3600)?;
 
             info!("Running Pretix exports");
@@ -388,7 +421,7 @@ async fn is_exact_authorized(config: &Config) -> color_eyre::Result<bool> {
 async fn ensure_exact_authentication(config: &mut Config) -> color_eyre::Result<()> {
     if !is_exact_authorized(config).await? {
         info!("No Exact Online token pair available. Need to authorize.");
-        let login_url = exact_request::oauth::login_url(
+        let login_url = exact_request::api::oauth::login_url(
             &config.exact.oauth.client_id,
             &config.exact.oauth.redirect_uri,
         );
@@ -401,7 +434,7 @@ async fn ensure_exact_authentication(config: &mut Config) -> color_eyre::Result<
         info!("Received login callback");
 
         // Exchange the callback result for a token pair
-        let token_pair = exact_request::oauth::exchange_code(
+        let token_pair = exact_request::api::oauth::exchange_code(
             callback_result.code,
             &config.exact.oauth.client_id,
             &config.exact.oauth.client_secret,
