@@ -78,8 +78,8 @@ async fn main() -> color_eyre::Result<()> {
 ///
 /// If a client could not be initialized
 async fn init_external_clients(config: &Config) -> color_eyre::Result<ExternalClients> {
-    // Create the external clients
     let pretix_client = pretix_client(config);
+
     let mut exact_client = exact_client(config);
     // We need to query the account division, we use this is in all subsequent requests.
     exact_client.set_division(accounting_division(&exact_client).await?);
@@ -130,7 +130,13 @@ fn init_rustls() -> color_eyre::Result<()> {
     Ok(())
 }
 
-/// Install the tracing subscriber
+/// Install the tracing subscriber using the directive provided
+/// as per [EnvFilter::from_str].
+///
+/// # Errors
+///
+/// - If an invalid directive is provided
+/// - If the subscriber could not be initialized, for example, if a logger is already initialized.
 fn install_tracing<S: AsRef<str>>(directive: S) -> color_eyre::Result<()> {
     registry()
         .with(EnvFilter::from_str(directive.as_ref())?)
