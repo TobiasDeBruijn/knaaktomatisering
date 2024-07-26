@@ -1,26 +1,15 @@
 use crate::args::{ExecutionMode, ProgramArgs};
 use crate::auth::ensure_authentication;
-use crate::config::{Config, Credentials, Exact, OAuthTokenPair};
+use crate::config::Config;
 use crate::modes::weekelijkse_plezier::WeekelijksePlezier;
 use crate::modes::{ExternalClients, Mode};
 use clap::Parser;
 use color_eyre::eyre::Error;
-use exact_request::api::gl_account::get_gl_account_by_code;
 use exact_request::api::me::accounting_division;
-use exact_request::api::sales_entry::{get_sales_entry_for_entry_number, get_sales_entry_lines};
 use exact_request::ExactClient;
-use futures_util::future::try_join_all;
-use modes::weekelijkse_plezier::pretix::pretix_totals;
-use modes::weekelijkse_plezier::time_util::last_monday;
-use pretix_request::data_exporter::{DataExporter, OrderDataExportOrderItem};
-use pretix_request::events::Event;
-use pretix_request::organizer::Organizer;
 use pretix_request::PretixClient;
-use std::collections::HashMap;
-use std::num::ParseFloatError;
 use std::str::FromStr;
-use time::{Duration, OffsetDateTime, Time, UtcOffset, Weekday};
-use tracing::{debug, info};
+use tracing::info;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::fmt::layer;
 use tracing_subscriber::layer::SubscriberExt;
@@ -90,8 +79,8 @@ async fn main() -> color_eyre::Result<()> {
 /// If a client could not be initialized
 async fn init_external_clients(config: &Config) -> color_eyre::Result<ExternalClients> {
     // Create the external clients
-    let pretix_client = pretix_client(&config);
-    let mut exact_client = exact_client(&config);
+    let pretix_client = pretix_client(config);
+    let mut exact_client = exact_client(config);
     // We need to query the account division, we use this is in all subsequent requests.
     exact_client.set_division(accounting_division(&exact_client).await?);
 

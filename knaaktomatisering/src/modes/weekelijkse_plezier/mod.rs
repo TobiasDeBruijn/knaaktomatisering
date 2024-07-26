@@ -36,15 +36,15 @@ impl Mode for WeekelijksePlezier {
         // exports, which are expensive.
         info!("Fetching sales entry information from Exact");
         let sales_entry =
-            get_sales_entry_for_entry_number(&exact_client, args.transaction_id).await?;
-        let sales_entry_lines = get_sales_entry_lines(&exact_client, &sales_entry).await?;
+            get_sales_entry_for_entry_number(exact_client, args.transaction_id).await?;
+        let sales_entry_lines = get_sales_entry_lines(exact_client, &sales_entry).await?;
         info!("{sales_entry_lines:?}");
 
         let offset = UtcOffset::from_whole_seconds(args.utc_offset_hours * 3600)?;
 
         info!("Running Pretix exports");
         let summaries = pretix_totals(
-            &pretix_client,
+            pretix_client,
             last_monday(offset) - Duration::weeks(args.periods_ago as i64),
             offset,
         )

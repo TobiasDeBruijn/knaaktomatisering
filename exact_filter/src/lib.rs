@@ -36,14 +36,14 @@ impl Display for Guid {
 
 pub trait FilterValue: ToString {
     fn serialize(&self) -> String {
-        format!("{}", self.to_string())
+        self.to_string()
     }
 }
 
 impl FilterValue for String {}
 impl FilterValue for Guid {
     fn serialize(&self) -> String {
-        Guid::serialize(&self)
+        Guid::serialize(self)
     }
 }
 impl<'a> FilterValue for &'a str {}
@@ -182,7 +182,7 @@ impl Filter {
 
     #[inline]
     pub fn finalize(mut self) -> String {
-        if self.0.starts_with("(") && self.0.ends_with(")") {
+        if self.0.starts_with('(') && self.0.ends_with(')') {
             self.0.remove(0);
             self.0.remove(self.0.len() - 1);
         }

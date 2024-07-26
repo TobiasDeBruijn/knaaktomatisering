@@ -40,7 +40,7 @@ where
         code: &'a str,
     }
 
-    Ok(reqwest::Client::new()
+    reqwest::Client::new()
         .post(&format!("{}/api/v1/oauth/token", pretix_uri.as_ref()))
         .basic_auth(client_id.as_ref(), Some(client_secret.as_ref()))
         .form(&RequestForm {
@@ -52,5 +52,5 @@ where
         .await?
         .error_for_status()?
         .json()
-        .await?)
+        .await
 }

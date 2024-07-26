@@ -39,7 +39,7 @@ where
         code: &'a str,
     }
 
-    Ok(reqwest::Client::new()
+    reqwest::Client::new()
         .post(ExactClient::url("/api/oauth2/token"))
         .form(&RequestForm {
             code: &code,
@@ -52,5 +52,5 @@ where
         .await?
         .error_for_status()?
         .json()
-        .await?)
+        .await
 }

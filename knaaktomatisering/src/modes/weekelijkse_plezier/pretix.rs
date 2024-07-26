@@ -26,10 +26,10 @@ pub async fn pretix_totals(
     // List all organizers we have access to,
     // within each organizer, list all events,
     // for each event, run an export and compute the totals
-    let results = try_join_all(Organizer::list(&pretix_client).await?.into_iter().map(
+    let results = try_join_all(Organizer::list(pretix_client).await?.into_iter().map(
         |organizer| async move {
             try_join_all(
-                Event::list(&pretix_client, &organizer.slug)
+                Event::list(pretix_client, &organizer.slug)
                     .await?
                     .into_iter()
                     // We do not need to check closed events
@@ -58,18 +58,18 @@ pub async fn pretix_totals(
                             let totals = order_export_calc_totals(&data_export)?;
 
                             let pdf = DataExporter::export_order_data_pdf(
-                                &pretix_client,
+                                pretix_client,
                                 organizer_id,
                                 &event.slug,
-                                period_start.clone(),
-                                period_end.clone(),
+                                period_start,
+                                period_end,
                             )
                             .await?;
 
                             let key = event
                                 .name
                                 .get("en")
-                                .map(|name| name.clone())
+                                .cloned()
                                 .unwrap_or(event.slug.to_string().clone());
 
                             Ok::<_, Error>((key, EventSummary { totals, pdf }))
