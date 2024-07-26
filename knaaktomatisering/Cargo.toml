@@ -25,3 +25,4 @@ rustls-pemfile = "2.1.2"
 http = "1.1.0"
 time = { version = "0.3.36", features = ["local-offset"] }
 futures-util = "0.3.30"
+knaaktomatisering_proc = { path = "../knaaktomatisering_proc" }

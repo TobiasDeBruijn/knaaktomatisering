@@ -4,5 +4,6 @@ members = [
     "exact_filter",
     "exact_request",
     "knaaktomatisering",
-    "pretix_request"
+    "pretix_request",
+    "knaaktomatisering_proc"
 ]
