@@ -20,7 +20,7 @@ pub struct Event {
     pub date_to: Option<OffsetDateTime>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Hash, Deserialize)]
 
 pub struct EventId(String);
 

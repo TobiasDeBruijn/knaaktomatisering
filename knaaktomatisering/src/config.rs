@@ -88,6 +88,11 @@ pub struct Pretix {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PretixEventConfig {
+    pub gl_account: ExactGLAccountCode,
+    /// The VAT on the event. May be `None`
+    /// if `split_per_product` is true, in which case the information is pulled
+    /// directly from Pretix.
+    pub vat_code: Option<String>,
     /// Whether items in the event should be imported to Exact
     /// as seperate order lines, rather than be combined into one.
     ///
@@ -100,6 +105,8 @@ pub struct PretixEventConfig {
     ///
     /// If the value for `split_per_product` is set to false, an empty map should be provided.
     pub cost_centers_per_product: HashMap<RegexPattern, ExactCostCenterCode>,
+
+    pub ignore_products: Vec<RegexPattern>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -111,6 +118,13 @@ pub struct Exact {
     pub gl_accounts: ExactGlAccounts,
     /// Exact journals
     pub journals: ExactJournals,
+    pub vat_codes: Vec<VATCode>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct VATCode {
+    pub percentage: f32,
+    pub code: String,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -127,8 +141,6 @@ pub struct ExactGlAccounts {
     /// The code for bookkeeping.
     /// Last I checked this is `5007`.
     pub bookkeeping: ExactGLAccountCode,
-    /// A mapping of a Pretix event IDs, also known as it's short form, to the code of an Exact GL Account.
-    pub pretix_events: HashMap<PretixEventId, ExactGLAccountCode>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

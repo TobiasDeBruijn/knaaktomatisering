@@ -1,6 +1,6 @@
 use crate::args::{ExecutionMode, ProgramArgs};
 use crate::auth::ensure_authentication;
-use crate::config::Config;
+use crate::config::{Config, Credentials, OAuthTokenPair};
 use crate::modes::weekelijkse_plezier::WeekelijksePlezier;
 use crate::modes::{ExternalClients, Mode};
 use clap::Parser;
@@ -62,7 +62,7 @@ async fn main() -> color_eyre::Result<()> {
     let clients = init_external_clients(&config).await?;
 
     // Run the program in the desired mode.
-    match &prog_args.mode {
+    match &prog_args.mode.as_ref().expect("No execution mode provided") {
         ExecutionMode::WeekelijksePlezier(args) => {
             WeekelijksePlezier::execute_mode(args, &prog_args, &config, &clients).await
         }
@@ -93,32 +93,32 @@ async fn init_external_clients(config: &Config) -> color_eyre::Result<ExternalCl
 /// Create an Exact client.
 /// Requires the access token to be set.
 fn exact_client(config: &Config) -> ExactClient {
-    ExactClient::new(
-        &config
-            .credentials
-            .as_ref()
-            .unwrap()
-            .exact
-            .as_ref()
-            .unwrap()
-            .access_token,
-    )
+    ExactClient::new(access_token(config, |c| &c.exact))
 }
 
 /// Create a pretix client.
 /// Requires the access token to be set.
 fn pretix_client(config: &Config) -> PretixClient {
     PretixClient::new(
-        &config
-            .credentials
-            .as_ref()
-            .unwrap()
-            .pretix
-            .as_ref()
-            .unwrap()
-            .access_token,
+        access_token(config, |c| &c.pretix),
         config.pretix.url.clone(),
     )
+}
+
+/// Retrieve an application's access token from the configuration file.
+///
+/// # Panics
+///
+/// If the credentials section is `None` or the returned Option from `f` is `None`.
+fn access_token<F>(config: &Config, f: F) -> String
+where
+    F: Fn(&Credentials) -> &Option<OAuthTokenPair>,
+{
+    let credentials = &config.credentials.as_ref().unwrap();
+
+    let app_credentials = f(*credentials);
+
+    app_credentials.as_ref().unwrap().access_token.clone()
 }
 
 /// Initialize the rustls crypto provider.

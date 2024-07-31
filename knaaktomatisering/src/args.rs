@@ -7,7 +7,7 @@ pub struct ProgramArgs {
     #[clap(long, short)]
     pub config: PathBuf,
     #[clap(subcommand)]
-    pub mode: ExecutionMode,
+    pub mode: Option<ExecutionMode>,
     /// Only perform OAuth2 authorizations.
     /// Useful if you need to run the program as root for the authorizations,
     /// due to the bind to port 443, but want to run

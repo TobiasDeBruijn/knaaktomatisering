@@ -11,7 +11,7 @@ pub struct Organizer {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct OrganizerId(String);
+pub struct OrganizerId(pub String);
 
 impl Organizer {
     /// List all accessible organizers.

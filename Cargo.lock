@@ -997,6 +997,7 @@ dependencies = [
  "knaaktomatisering_proc",
  "noiseless-tracing-actix-web",
  "pretix_request",
+ "regex",
  "rustls",
  "rustls-pemfile",
  "serde",
@@ -1320,6 +1321,7 @@ dependencies = [
  "log",
  "reqwest",
  "serde",
+ "serde-this-or-that",
  "thiserror",
  "time",
  "tokio",
@@ -1655,6 +1657,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc76f558e0cbb2a839d37354c575f1dc3fdc6546b5be373ba43d95f231bf7c12"
 dependencies = [
  "serde_derive",
+]
+
+[[package]]
+name = "serde-this-or-that"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "634c5a3cb041e56cc2964386151c67d520f845445789da3bd46bfb1c94f5e3bb"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

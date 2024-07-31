@@ -56,7 +56,7 @@ impl ExactClient {
     /// division is the number after `/api/v1/`. For example, in `/api/v1/55861/salesentry/SalesEntries`
     /// the accounting division is `55861`. For endpoints with an accounting division, use [Self::divisioned_url].
     pub fn url<S: AsRef<str>>(s: S) -> String {
-        format!("https://start.exactonline.nl/{}", s.as_ref())
+        format!("https://start.exactonline.nl{}", s.as_ref())
     }
 
     /// Format a URL within the accounting division namespace.

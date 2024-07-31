@@ -1,3 +1,4 @@
+pub mod cost_center;
 pub mod gl_account;
 pub mod me;
 pub mod oauth;

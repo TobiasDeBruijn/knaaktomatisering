@@ -48,7 +48,7 @@ pub fn pretix_export_period(
             .with_time(Time::MIDNIGHT)
             .assume_offset(offset),
         (monday.date() + Duration::days(6))
-            .with_time(Time::MIDNIGHT)
+            .with_time(Time::from_hms(23, 59, 59).unwrap())
             .assume_offset(offset),
     ))
 }
